@@ -152,6 +152,44 @@ function initBackgroundMusic() {
     document.addEventListener('click', onInteract);
     document.addEventListener('keydown', onInteract);
     document.addEventListener('touchstart', onInteract);
+
+    // --- BACKGROUND CONTROL (Mobil & Sekme Değişikliği) ---
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // Arka plana geçtiğinde sesleri durdur
+            if (backgroundMusic && !backgroundMusic.paused) {
+                backgroundMusic.pause();
+                backgroundMusic._wasPlaying = true;
+            }
+            if (countdownSound && !countdownSound.paused) {
+                countdownSound.pause();
+                countdownSound._wasPlaying = true;
+            }
+
+            // Quiz zamanlayıcısını durdur
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        } else {
+            // Ön plana geldiğinde (sessiz değilse) sesleri devam ettir
+            if (!isMuted) {
+                if (backgroundMusic && backgroundMusic._wasPlaying) {
+                    backgroundMusic.play().catch(() => { });
+                    backgroundMusic._wasPlaying = false;
+                }
+                if (countdownSound && countdownSound._wasPlaying) {
+                    countdownSound.play().catch(() => { });
+                    countdownSound._wasPlaying = false;
+                }
+            }
+
+            // Quiz zamanlayıcısını devam ettir (Eğer quiz devam ediyorsa)
+            if (quizView && !quizView.classList.contains('hidden') && currentTimeLeft > 0) {
+                startTimer(currentTimeLeft);
+            }
+        }
+    });
 }
 
 // --- SORU BANKASI (EDEBİYAT) ---
@@ -1832,7 +1870,7 @@ async function checkWhatsNew() {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.1.9"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.2.0"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
