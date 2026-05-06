@@ -1,4 +1,9 @@
 {
+    "3.2.5": [
+        "Uygulama ikonu güncellendi.",
+        "Mobil platformlar için ikon uyumluluğu ve Adaptive Icon desteği artırıldı.",
+        "Tüm Android mipmap çözünürlükleri için ikonlar senkronize edildi."
+    ],
     "3.2.4": [
         "Cevabı Açıkla butonu ve ilgili Gemini mantığı tamamen kaldırıldı.",
         "Puan formatı 'X P' (Örn: 10 P) olarak güncellendi.",

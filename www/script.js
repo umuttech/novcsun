@@ -1319,7 +1319,8 @@ function handleAnswerClick(clickedButton, isCorrect) {
     const q = currentQuizQuestions[currentQuestionIndex];
     allButtons.forEach(btn => {
         if (btn.textContent === q.d) {
-            btn.classList.add('correct');
+            btn.classList.remove('bg-black/10', 'bg-black/20', 'hover:bg-black/20', 'text-primary');
+            btn.classList.add('bg-green-600', 'text-white', 'animate-pulse');
         }
     });
 
@@ -1839,7 +1840,7 @@ async function checkWhatsNew() {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.2.4"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.2.5"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
