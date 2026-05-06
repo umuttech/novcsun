@@ -623,14 +623,7 @@ window.onload = async () => {
         nameInput.classList.remove('border-red-500', 'border-2');
     });
 
-    // Gemini açıklama butonları
-    document.getElementById('explainButton').addEventListener('click', showExplanation);
-
-    document.getElementById('closeExplanationButton').addEventListener('click', () => {
-        explanationView.classList.add('hidden');
-        currentQuestionIndex++;
-        showQuestion();
-    });
+    // explainButton ve explanationView dinleyicileri kaldırıldı
 
     // --- OTA UPDATE LISTENER (Electron) ---
     if (window.api && window.api.onUpdateAvailable) {
@@ -1253,7 +1246,7 @@ function startQuiz() {
 function showQuestion() {
     // clearInterval kaldırıldı (Kronometre devam etmeli)
 
-    explainButton.classList.add('hidden');
+    // explainButton kaldırıldı
     explanationView.classList.add('hidden');
 
     if (nextQuestionTimeout) {
@@ -1269,16 +1262,11 @@ function showQuestion() {
     const q = currentQuizQuestions[currentQuestionIndex];
 
     const totalQuestions = currentQuizQuestions.length;
-    const progressPercent = Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100);
+    const progressPercent = Math.round((currentQuestionIndex / totalQuestions) * 100);
 
     questionNumber.textContent = `${currentQuestionIndex + 1} / ${totalQuestions}`;
-    questionNumber.className = "text-xl font-bold text-primary"; 
-
-    scoreDisplay.textContent = `Puan: ${currentPoints}`;
-    scoreDisplay.className = "text-xl font-bold text-primary";
-
+    scoreDisplay.textContent = `${currentPoints} P`;
     quizProgress.textContent = `%${progressPercent}`;
-    quizProgress.className = "text-xl font-bold text-primary";
 
     questionText.textContent = q.q;
 
@@ -1336,17 +1324,17 @@ function handleAnswerClick(clickedButton, isCorrect) {
         }
     });
 
+    const totalQuestions = currentQuizQuestions.length;
+    const progressPercent = Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100);
+    quizProgress.textContent = `%${progressPercent}`;
+
     if (isCorrect) {
         playSound(correctSound);
         currentScore++; // Doğru cevap sayısı artmalı
         currentPoints = currentScore * 10;
         
-        const totalQuestions = currentQuizQuestions.length;
-        const progressPercent = Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100);
-
-        // Puan ve İlerleme burada görsel olarak güncelleniyor
-        scoreDisplay.textContent = `Puan: ${currentPoints}`;
-        quizProgress.textContent = `%${progressPercent}`;
+        // Puan görsel olarak güncelleniyor
+        scoreDisplay.textContent = `${currentPoints} P`;
         
         if (currentScore === 8) {
             medalWonView.classList.remove('hidden');
@@ -1852,7 +1840,7 @@ async function checkWhatsNew() {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.2.3"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.2.4"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);

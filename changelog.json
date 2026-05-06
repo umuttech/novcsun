@@ -1,4 +1,12 @@
 {
+    "3.2.4": [
+        "Cevabı Açıkla butonu ve ilgili Gemini mantığı tamamen kaldırıldı.",
+        "Puan formatı 'X P' (Örn: 10 P) olarak güncellendi.",
+        "Üst bar elementlerine (Soru, Puan, İlerleme) temaya uyumlu farklı renkler atandı.",
+        "Üst bar yerleşimi daha dengeli bir boşluk yapısına (space-x-10) kavuşturuldu.",
+        "İlerleme yüzdesi mantığı düzeltildi: Artık %0'dan başlayıp cevaplandıkça artıyor.",
+        "Liderlik tablosunun açılışta yüklenmesini engelleyen kritik hata giderildi."
+    ],
     "3.2.3": [
         "Süre sistemi geri sayım yerine kronometre (sayac) olarak değiştirildi.",
         "Yarışma esnasındaki sayaç tasarımı sadeleştirildi (çerçeve kaldırıldı).",
