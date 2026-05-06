@@ -40,6 +40,7 @@ let qmCategorySelect, qmAddNewButton, qmListContainer, qmEditorContainer;
 let qmInputQuestion, qmInputCorrect, qmInputWrong1, qmInputWrong2;
 let qmCancelEditButton, qmSaveButton;
 let qmEditIdInput, qmEditorTitle;
+let qmBulkImportButton, bulkImportModal, closeBulkImportButton, cancelBulkImportButton, confirmBulkImportButton, bulkImportTextarea, bulkImportStatus;
 
 
 // --- Test Değişkenleri ---
@@ -264,11 +265,19 @@ window.onload = async () => {
     const desktopSettingsBtnWrapper = document.getElementById('desktopSettingsBtnWrapper');
     const homeGridContainer = document.getElementById('homeGridContainer');
 
-    // Desktop/Mobile detection
-    const isMobile = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
+    // Desktop/Mobile & OS detection
+    // isElectron: Electron uygulaması kesin masaüstüdür — UA veya window.api ile tespit et
+    const isElectron = navigator.userAgent.includes('Electron') || !!(window.api && window.api.getConfig);
+    const isSmallScreen = window.innerWidth <= 768;
+    const isMobileOS = !isElectron && (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (window.Capacitor && window.Capacitor.isNativePlatform())
+    );
+    const isDesktopOS = !isMobileOS;
 
-    // Initial Setup based on platform
-    if (!isMobile) {
+    // Layout configuration based on screen size and OS
+    // Always use Desktop layout if it's Electron, Desktop OS, OR large screen
+    if (isElectron || isDesktopOS || !isSmallScreen) {
         if (mobileBottomNav) mobileBottomNav.classList.add('hidden');
         if (desktopSettingsBtnWrapper) desktopSettingsBtnWrapper.classList.remove('hidden');
         // Keep leaderboard visible and in its desktop place
@@ -277,14 +286,16 @@ window.onload = async () => {
             leaderboardWrapper.classList.remove('hidden');
         }
     } else {
-        // Wait until splash screen is hidden before completely unhiding mobile bottom nav.
+        // Mobile layout (Mobile OS + Small Screen)
         if (mobileBottomNav) {
             mobileBottomNav.classList.remove('hidden');
         }
+        
         if (desktopSettingsBtnWrapper) desktopSettingsBtnWrapper.classList.add('hidden');
+        
         if (leaderboardWrapper) {
             leaderboardWrapper.classList.add('full-page');
-            leaderboardWrapper.classList.add('hidden'); // hidden initially on mobile
+            leaderboardWrapper.classList.add('hidden'); // hidden initially on mobile layout
         }
     }
 
@@ -529,6 +540,24 @@ window.onload = async () => {
     qmEditIdInput = document.getElementById('qmEditId');
     qmEditorTitle = document.getElementById('qmEditorTitle');
 
+    // Bulk Import DOM
+    qmBulkImportButton = document.getElementById('qmBulkImportButton');
+    bulkImportModal = document.getElementById('bulkImportModal');
+    closeBulkImportButton = document.getElementById('closeBulkImportButton');
+    cancelBulkImportButton = document.getElementById('cancelBulkImportButton');
+    confirmBulkImportButton = document.getElementById('confirmBulkImportButton');
+    bulkImportTextarea = document.getElementById('bulkImportTextarea');
+    bulkImportStatus = document.getElementById('bulkImportStatus');
+
+    // OS Detection for Bulk Import Button (Hide on Android/iOS, Show on Windows/Mac/Linux)
+    // isMobileOS is already defined at the top of the function
+    if (qmBulkImportButton) {
+        if (!isMobileOS) {
+            qmBulkImportButton.classList.remove('hidden');
+            qmBulkImportButton.classList.add('flex');
+        }
+    }
+
     // Question Manager Event Listeners
     // openQuestionManagerButton.addEventListener('click', handleOpenQuestionManager); // REMOVED - Uses window.openAdminAuth now
     closeQuestionManagerButton.addEventListener('click', () => {
@@ -543,6 +572,16 @@ window.onload = async () => {
         qmListContainer.classList.remove('hidden');
     });
     qmSaveButton.addEventListener('click', handleSaveQuestion);
+
+    // Bulk Import Event Listeners
+    qmBulkImportButton.addEventListener('click', () => {
+        bulkImportModal.classList.remove('hidden');
+        bulkImportTextarea.value = "";
+        bulkImportStatus.classList.add('hidden');
+    });
+    closeBulkImportButton.addEventListener('click', () => bulkImportModal.classList.add('hidden'));
+    cancelBulkImportButton.addEventListener('click', () => bulkImportModal.classList.add('hidden'));
+    confirmBulkImportButton.addEventListener('click', handleBulkImport);
 
     // Ses açma/kapama butonu
     if (menuSoundBtn) menuSoundBtn.addEventListener('click', toggleMute);
@@ -1645,7 +1684,12 @@ function switchView(viewId) {
     if (settingsMenu) settingsMenu.classList.add('hidden');
     if (homeGridContainer) homeGridContainer.classList.add('hidden');
 
-    const isMobile = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
+    const isElectron = navigator.userAgent.includes('Electron') || !!(window.api && window.api.getConfig);
+    const isMobileOS = !isElectron && (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (window.Capacitor && window.Capacitor.isNativePlatform())
+    );
+    const isMobile = isMobileOS && window.innerWidth <= 768;
 
     if (viewId === 'loginView') {
         if (homeGridContainer) homeGridContainer.classList.remove('hidden');
@@ -1655,7 +1699,7 @@ function switchView(viewId) {
         } else if (leaderboardWrapper) {
             leaderboardWrapper.classList.add('hidden');
         }
-        if (mobileBottomNav) mobileBottomNav.classList.remove('hidden');
+        if (isMobile && mobileBottomNav) mobileBottomNav.classList.remove('hidden');
     } else {
         if (document.getElementById(viewId)) {
             document.getElementById(viewId).classList.remove('hidden');
@@ -2167,21 +2211,28 @@ function renderManagerList(questions) {
     // Reverse for new items on top if desired, but default is OK
     questions.forEach((q, index) => {
         const item = document.createElement('div');
-        item.className = "bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-blue-500 transition-all flex flex-col gap-2";
+        item.className = "p-4 rounded-lg border transition-all flex flex-col gap-2 relative overflow-hidden";
+        item.style.background = "var(--panel-bg)";
+        item.style.borderColor = "var(--glass-border)";
+        item.style.backdropFilter = "var(--glass-blur)";
+
+        // Hover effect helper via mouse events since inline hover is hard without a CSS class
+        item.onmouseenter = () => item.style.borderColor = "var(--accent-color)";
+        item.onmouseleave = () => item.style.borderColor = "var(--glass-border)";
 
         item.innerHTML = `
             <div class="flex justify-between items-start">
-                <span class="text-xs font-mono text-blue-400">#${index + 1}</span>
+                <span class="text-xs font-mono font-bold" style="color: var(--accent-color)">#${index + 1}</span>
                 <div class="flex space-x-2">
-                    <button class="text-sm bg-yellow-600 hover:bg-yellow-500 text-white px-2 py-1 rounded" onclick="window.editQuestion('${q.id}', '${q.category}')">Düzenle</button>
-                    <button class="text-sm bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded" onclick="window.deleteQuestion('${q.id}', '${q.category}')">Sil</button>
+                    <button class="text-sm px-3 py-1 rounded font-bold shadow-sm" style="background: var(--item-hover); color: var(--text-primary); border: 1px solid var(--glass-border)" onclick="window.editQuestion('${q.id}', '${q.category}')">Düzenle</button>
+                    <button class="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded font-bold shadow-sm" onclick="window.deleteQuestion('${q.id}', '${q.category}')">Sil</button>
                 </div>
             </div>
-            <p class="text-white font-medium text-lg leading-snug">${q.q}</p>
+            <p class="font-medium text-lg leading-snug" style="color: var(--text-primary)">${q.q}</p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mt-2">
-                <div class="bg-green-900/40 text-green-300 p-2 rounded border border-green-900/50">✅ ${q.d}</div>
-                <div class="bg-red-900/40 text-red-300 p-2 rounded border border-red-900/50">❌ ${q.y1}</div>
-                <div class="bg-red-900/40 text-red-300 p-2 rounded border border-red-900/50">❌ ${q.y2}</div>
+                <div class="p-2 rounded border" style="background: rgba(34, 197, 94, 0.1); color: #16a34a; border-color: rgba(34, 197, 94, 0.2);">✅ ${q.d}</div>
+                <div class="p-2 rounded border" style="background: rgba(239, 68, 68, 0.1); color: #dc2626; border-color: rgba(239, 68, 68, 0.2);">❌ ${q.y1}</div>
+                <div class="p-2 rounded border" style="background: rgba(239, 68, 68, 0.1); color: #dc2626; border-color: rgba(239, 68, 68, 0.2);">❌ ${q.y2}</div>
             </div>
         `;
 
@@ -2333,8 +2384,6 @@ async function handleSaveQuestion() {
                 } else {
                     // Belge yoksa yeni oluştur (ID koruyarak değil, yeni auto-ID ile ama originalId ile)
                     console.warn("Edit: Belge bulunamadı, yeni oluşturuluyor.");
-                    // Opsiyonel: Hata fırlatmak yerine yeni ekle. Ama ID değişecek.
-                    // Kullanıcıya bilgi versek daha iyi.
                 }
             }
 
@@ -2359,5 +2408,122 @@ async function handleSaveQuestion() {
     } catch (e) {
         console.error("Kaydetme hatası:", e);
         alert("Kaydederken hata oluştu: " + e.message);
+    }
+}
+
+/**
+ * Parses and uploads multiple questions from custom text format
+ */
+async function handleBulkImport() {
+    const rawData = bulkImportTextarea.value.trim();
+    if (!rawData) {
+        showBulkStatus("Lütfen soruları girin.", "error");
+        return;
+    }
+
+    let questions = [];
+    // Split blocks by blank lines (regex matches 2 or more newlines)
+    const blocks = rawData.split(/\n\s*\n/);
+    
+    for (const block of blocks) {
+        const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+        // We need at least 4 lines: Question, Correct, Wrong1, Wrong2
+        if (lines.length >= 4) {
+            let cat = undefined;
+            if (lines.length >= 5) {
+                const catText = lines[4].toLowerCase();
+                if (catText.includes('kolay')) cat = 'level1';
+                else if (catText.includes('orta')) cat = 'level2';
+                else if (catText.includes('zor')) cat = 'level3';
+                else if (catText.includes('level1')) cat = 'level1';
+                else if (catText.includes('level2')) cat = 'level2';
+                else if (catText.includes('level3')) cat = 'level3';
+            }
+            
+            questions.push({
+                q: lines[0],
+                d: lines[1],
+                y1: lines[2],
+                y2: lines[3],
+                category: cat
+            });
+        } else if (lines.length > 0) {
+            console.warn("Eksik satır içeren blok atlandı:", lines);
+        }
+    }
+
+    if (questions.length === 0) {
+        showBulkStatus("Geçerli formatta soru bulunamadı! Lütfen formatı kontrol edin.", "error");
+        return;
+    }
+
+    confirmBulkImportButton.disabled = true;
+    confirmBulkImportButton.textContent = "Yükleniyor...";
+    showBulkStatus("İşleniyor...", "info");
+
+    try {
+        const questionsColPath = `/artifacts/${appId}/public/data/questions`;
+        const batchSize = 500; // Firestore batch limit
+        let count = 0;
+
+        // Process in batches if necessary
+        for (let i = 0; i < questions.length; i += batchSize) {
+            const batch = writeBatch(db);
+            const chunk = questions.slice(i, i + batchSize);
+
+            chunk.forEach(qData => {
+                // Validation
+                if (!qData.q || !qData.d || !qData.y1 || !qData.y2) {
+                    console.warn("Eksik veri içeren soru atlandı:", qData);
+                    return;
+                }
+
+                const docRef = doc(collection(db, questionsColPath));
+                batch.set(docRef, {
+                    q: qData.q,
+                    d: qData.d,
+                    y1: qData.y1,
+                    y2: qData.y2,
+                    category: qData.category || qmCategorySelect.value || 'level1',
+                    createdAt: new Date().toISOString()
+                });
+                count++;
+            });
+
+            await batch.commit();
+        }
+
+        showBulkStatus(`Başarılı! ${count} soru içe aktarıldı.`, "success");
+        
+        // Refresh UI
+        await loadAllQuestionsFromDB();
+        if (qmCategorySelect.value) {
+            loadQuestionsForManager(qmCategorySelect.value);
+        }
+
+        setTimeout(() => {
+            bulkImportModal.classList.add('hidden');
+            confirmBulkImportButton.disabled = false;
+            confirmBulkImportButton.textContent = "Veritabanına Yaz";
+        }, 2000);
+
+    } catch (error) {
+        console.error("Toplu içe aktarma hatası:", error);
+        showBulkStatus("Hata: " + error.message, "error");
+        confirmBulkImportButton.disabled = false;
+        confirmBulkImportButton.textContent = "Veritabanına Yaz";
+    }
+}
+
+function showBulkStatus(message, type) {
+    bulkImportStatus.textContent = message;
+    bulkImportStatus.classList.remove('hidden', 'bg-red-900/50', 'text-red-300', 'bg-green-900/50', 'text-green-300', 'bg-blue-900/50', 'text-blue-300');
+    
+    if (type === "error") {
+        bulkImportStatus.classList.add('bg-red-900/50', 'text-red-300');
+    } else if (type === "success") {
+        bulkImportStatus.classList.add('bg-green-900/50', 'text-green-300');
+    } else {
+        bulkImportStatus.classList.add('bg-blue-900/50', 'text-blue-300');
     }
 }

@@ -264,8 +264,15 @@ window.onload = async () => {
     const desktopSettingsBtnWrapper = document.getElementById('desktopSettingsBtnWrapper');
     const homeGridContainer = document.getElementById('homeGridContainer');
 
-    // Desktop/Mobile detection
-    const isMobile = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
+    // Desktop/Mobile & OS detection
+    // isElectron: Electron uygulaması kesin masaüstüdür — UA veya window.api ile tespit et
+    const isElectron = navigator.userAgent.includes('Electron') || !!(window.api && window.api.getConfig);
+    const isSmallScreen = window.innerWidth <= 768;
+    const isMobileOS = !isElectron && (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (window.Capacitor && window.Capacitor.isNativePlatform())
+    );
+    const isMobile = isMobileOS && isSmallScreen;
 
     // Initial Setup based on platform
     if (!isMobile) {
@@ -1645,7 +1652,12 @@ function switchView(viewId) {
     if (settingsMenu) settingsMenu.classList.add('hidden');
     if (homeGridContainer) homeGridContainer.classList.add('hidden');
 
-    const isMobile = window.innerWidth <= 768 || (window.Capacitor && window.Capacitor.isNativePlatform());
+    const isElectron = navigator.userAgent.includes('Electron') || !!(window.api && window.api.getConfig);
+    const isMobileOS = !isElectron && (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (window.Capacitor && window.Capacitor.isNativePlatform())
+    );
+    const isMobile = isMobileOS && window.innerWidth <= 768;
 
     if (viewId === 'loginView') {
         if (homeGridContainer) homeGridContainer.classList.remove('hidden');
@@ -1655,7 +1667,7 @@ function switchView(viewId) {
         } else if (leaderboardWrapper) {
             leaderboardWrapper.classList.add('hidden');
         }
-        if (mobileBottomNav) mobileBottomNav.classList.remove('hidden');
+        if (isMobile && mobileBottomNav) mobileBottomNav.classList.remove('hidden');
     } else {
         if (document.getElementById(viewId)) {
             document.getElementById(viewId).classList.remove('hidden');

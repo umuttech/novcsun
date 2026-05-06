@@ -455,3 +455,14 @@ select option {
     max-height: 65vh;
     /* Mobilde daha fazla alan ver */
 }
+
+/* Bulk Import Textarea Customization */
+#bulkImportTextarea {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) transparent;
+}
+
+#bulkImportTextarea:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
