@@ -151,7 +151,7 @@
                     <!-- Developer Signature -->
                     <div class="absolute -bottom-2 w-full text-center">
                         <span class="text-xs text-gray-400 font-medium tracking-wider developer-signature">Developed
-                            by Umut Özgü v3.2.2</span>
+                            by Umut Özgü v3.2.3</span>
                     </div>
                 </div>
             </div>
@@ -174,23 +174,18 @@
     <div id="quizView" class="w-full max-w-3xl mx-auto p-8 hidden glass-panel text-primary">
 
         <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center space-x-2">
-                <span id="questionNumber" class="text-xl font-bold text-secondary">Soru 1 / 10</span>
-                <span id="scoreDisplay" class="ml-4 text-xl font-bold text-yellow-400">Puan: 0</span>
+            <div class="flex items-center space-x-12">
+                <span id="questionNumber" class="text-xl font-bold"></span>
+                <span id="scoreDisplay" class="text-xl font-bold"></span>
+                <span id="quizProgress" class="text-xl font-bold"></span>
                 <button id="explainButton"
                     class="hidden text-sm bg-blue-600 text-white py-1 px-3 rounded-full hover:bg-blue-500 transition-all">
                     ✨ Cevabı Açıkla
                 </button>
             </div>
 
-            <div id="timerContainer" class="relative w-16 h-16 flex items-center justify-center">
-                <svg class="w-full h-full" viewBox="0 0 60 60">
-                    <circle cx="30" cy="30" r="28" stroke="#4B5563" stroke-width="4" fill="none" />
-                    <circle id="timerProgressCircle" cx="30" cy="30" r="28" stroke="#3B82F6" stroke-width="4"
-                        fill="none" transform="rotate(-90 30 30)" stroke-linecap="round" stroke-dasharray="175.9"
-                        stroke-dashoffset="175.9" />
-                </svg>
-                <span id="timer" class="absolute text-xl font-bold text-primary">30</span>
+            <div id="timerContainer" class="flex items-center justify-center">
+                <span id="timer" class="text-3xl font-mono font-bold text-blue-400">00:00</span>
             </div>
         </div>
 
@@ -204,7 +199,33 @@
     </div>
 
     <div id="endView" class="hidden text-center p-8 bg-mat-dark rounded-lg shadow-2xl max-w-lg mx-auto glass-panel">
-        <div id="endMessageText"></div>
+        <h2 class="text-3xl font-bold text-primary mb-6">🎉 Tebrikler!</h2>
+        
+        <!-- İstatistik Kartları -->
+        <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="bg-black/20 p-3 rounded-xl border border-gray-700/30">
+                <div class="text-2xl mb-1">⏱️</div>
+                <div id="endTimerText" class="text-lg font-bold text-primary">00:00</div>
+                <div class="text-[10px] text-secondary uppercase tracking-wider">Süre</div>
+            </div>
+            <div class="bg-black/20 p-3 rounded-xl border border-gray-700/30">
+                <div class="text-2xl mb-1">✅</div>
+                <div id="endCorrectText" class="text-lg font-bold text-green-500">0</div>
+                <div class="text-[10px] text-secondary uppercase tracking-wider">Doğru</div>
+            </div>
+            <div class="bg-black/20 p-3 rounded-xl border border-gray-700/30">
+                <div class="text-2xl mb-1">❌</div>
+                <div id="endWrongText" class="text-lg font-bold text-red-500">0</div>
+                <div class="text-[10px] text-secondary uppercase tracking-wider">Yanlış</div>
+            </div>
+        </div>
+
+        <div id="endMessageText" class="mb-6"></div>
+        
+        <div id="bonusMessageArea" class="hidden mb-6 p-4 bg-yellow-600/20 border border-yellow-500/50 rounded-xl animate-bounce">
+            <span class="text-yellow-400 font-bold">✨ +5 BONUS!</span>
+            <p class="text-sm text-yellow-200">Önceki yarışmacıyı geçtiniz!</p>
+        </div>
         <button id="tryAgainButton"
             class="w-full max-w-md mt-6 bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 btn-hover-glow">
             Ana Menü
@@ -589,7 +610,7 @@
                 <h2
                     class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
                     Yenilikler</h2>
-                <p id="whatsNewVersion" class="text-secondary font-mono text-sm mt-1">v3.2.2</p>
+                <p id="whatsNewVersion" class="text-secondary font-mono text-sm mt-1">v3.2.3</p>
             </div>
 
             <div id="whatsNewContent" class="space-y-3 mb-8 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">

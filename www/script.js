@@ -23,7 +23,7 @@ let loginView, quizView, endView, medalWonView, explanationView, aboutView;
 let countdownView;
 let nameInput, loginButton;
 let leaderboardContainer, aboutContent;
-let questionNumber, questionText, answersContainer, timerContainer, scoreDisplay;
+let questionNumber, questionText, answersContainer, timerContainer, scoreDisplay, quizProgress;
 let endMessageText;
 let menuSoundBtn, menuSoundIcon, menuSoundText;
 let nameError;
@@ -52,7 +52,8 @@ let currentPoints = 0; // Toplam puan
 let timerInterval = null;
 let explainButton;
 let nextQuestionTimeout = null;
-let currentTimeLeft = 0; // Kalan süreyi takip etmek için
+let quizStartTime = 0;
+let quizElapsedSeconds = 0;
 
 // --- SES DEĞİŞKENLERİ ---
 const correctSound = new Audio('sounds/dogru.mp3');
@@ -185,8 +186,8 @@ function initBackgroundMusic() {
             }
 
             // Quiz zamanlayıcısını devam ettir (Eğer quiz devam ediyorsa)
-            if (quizView && !quizView.classList.contains('hidden') && currentTimeLeft > 0) {
-                startTimer(currentTimeLeft);
+            if (quizView && !quizView.classList.contains('hidden')) {
+                startTimer(true);
             }
         }
     });
@@ -253,6 +254,7 @@ window.onload = async () => {
     answersContainer = document.getElementById('answersContainer');
     timerContainer = document.getElementById('timerContainer');
     scoreDisplay = document.getElementById('scoreDisplay');
+    quizProgress = document.getElementById('quizProgress');
 
     endMessageText = document.getElementById('endMessageText');
     explainButton = document.getElementById('explainButton');
@@ -1177,9 +1179,9 @@ function startQuiz() {
     const filterSeen = (bank) => bank.filter(q => !currentUserStats.seenQuestions.includes(q.id));
 
     const buildPool = () => {
-        const l1 = filterSeen(level1QuestionBank).map(q => ({ ...q, points: q.points || 5, time: 30 }));
-        const l2 = filterSeen(level2QuestionBank).map(q => ({ ...q, points: q.points || 10, time: 30 }));
-        const l3 = filterSeen(level3QuestionBank).map(q => ({ ...q, points: q.points || 15, time: 30 }));
+        const l1 = filterSeen(level1QuestionBank);
+        const l2 = filterSeen(level2QuestionBank);
+        const l3 = filterSeen(level3QuestionBank);
 
         return [
             ...shuffleArray(l1).slice(0, 3),
@@ -1205,6 +1207,7 @@ function startQuiz() {
     }
 
     switchView('quizView');
+    startTimer(); // Kronometreyi başlat
     showQuestion();
 }
 
@@ -1212,7 +1215,7 @@ function startQuiz() {
  * Mevcut soruyu ekrana getirir ve sayacı başlatır
  */
 function showQuestion() {
-    clearInterval(timerInterval);
+    // clearInterval kaldırıldı (Kronometre devam etmeli)
 
     explainButton.classList.add('hidden');
     explanationView.classList.add('hidden');
@@ -1229,8 +1232,18 @@ function showQuestion() {
 
     const q = currentQuizQuestions[currentQuestionIndex];
 
-    questionNumber.textContent = `${currentQuestionIndex + 1} / 10`;
+    const totalQuestions = currentQuizQuestions.length;
+    const progressPercent = Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100);
+
+    questionNumber.textContent = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+    questionNumber.className = "text-xl font-bold text-primary"; 
+
     scoreDisplay.textContent = `Puan: ${currentPoints}`;
+    scoreDisplay.className = "text-xl font-bold text-primary";
+
+    quizProgress.textContent = `%${progressPercent}`;
+    quizProgress.className = "text-xl font-bold text-primary";
+
     questionText.textContent = q.q;
 
     const answers = shuffleArray([q.d, q.y1, q.y2]);
@@ -1244,130 +1257,26 @@ function showQuestion() {
         button.onclick = () => handleAnswerClick(button, answer === q.d);
         answersContainer.appendChild(button);
     });
-
-    startTimer(q.time || 30);
 }
 
 /**
- * Sayaç mantığını yönetir
+ * Kronometre mantığı (00:00'dan yukarı sayar)
  */
-function startTimer(seconds) {
-    let timeLeft = seconds;
-    currentTimeLeft = timeLeft; // Modül seviyesinde takip
-    const timerEl = document.getElementById('timer');
-    const progressCircle = document.getElementById('timerProgressCircle');
-    const totalDash = 2 * Math.PI * 28;
-
-    progressCircle.setAttribute('stroke-dasharray', totalDash);
-
-    // UI'ı hemen güncelle
-    timerEl.textContent = timeLeft;
-    progressCircle.setAttribute('stroke-dashoffset', totalDash);
-    timerEl.classList.remove('text-red-500');
-    progressCircle.setAttribute('stroke', '#3B82F6');
-
+function startTimer(isResume = false) {
+    if (timerInterval) clearInterval(timerInterval);
+    
+    if (!isResume) quizStartTime = Date.now();
+    
     timerInterval = setInterval(() => {
-        timeLeft--;
-        currentTimeLeft = timeLeft; // Kalan süreyi güncelle
-        timerEl.textContent = timeLeft;
-
-        const dashOffset = totalDash * (timeLeft / seconds);
-        progressCircle.setAttribute('stroke-dashoffset', dashOffset);
-
-        if (timeLeft <= 5) {
-            progressCircle.setAttribute('stroke', '#EF4444');
-            timerEl.classList.add('text-red-500');
-        } else {
-            progressCircle.setAttribute('stroke', '#3B82F6');
-            timerEl.classList.remove('text-red-500');
-        }
-
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            handleTimeUp();
-        }
+        quizElapsedSeconds = Math.floor((Date.now() - quizStartTime) / 1000);
+        
+        const minutes = Math.floor(quizElapsedSeconds / 60);
+        const seconds = quizElapsedSeconds % 60;
+        
+        const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const timerEl = document.getElementById('timer');
+        if (timerEl) timerEl.textContent = display;
     }, 1000);
-}
-
-/**
- * Kalan süreye göre bonus puan hesaplar
- * >20 saniye → +6, 10-20 saniye → +4, <10 saniye → +2
- */
-function getTimeBonusPoints(timeLeft) {
-    if (timeLeft > 20) return 6;
-    if (timeLeft > 10) return 4;
-    return 2;
-}
-
-/**
- * Bonus puan kazanıldığında ekranda animasyonlu bildirim gösterir
- */
-function showBonusToast(bonusPoints) {
-    const toast = document.createElement('div');
-    toast.textContent = `+${bonusPoints} BONUS`;
-    toast.style.cssText = [
-        'position: fixed',
-        'top: 50%',
-        'left: 50%',
-        'transform: translate(-50%, -50%) scale(0.5)',
-        'background: linear-gradient(135deg, #f59e0b, #d97706)',
-        'color: #fff',
-        'font-size: 1.6rem',
-        'font-weight: 900',
-        'letter-spacing: 0.1em',
-        'padding: 0.5rem 1.4rem',
-        'border-radius: 999px',
-        'box-shadow: 0 0 30px rgba(245,158,11,0.7)',
-        'pointer-events: none',
-        'z-index: 9999',
-        'opacity: 0',
-        'transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1)'
-    ].join(';');
-    document.body.appendChild(toast);
-
-    // Belirme animasyonu
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            toast.style.opacity = '1';
-            toast.style.transform = 'translate(-50%, -50%) scale(1)';
-        });
-    });
-
-    // Yukarı kayarak kaybolma
-    setTimeout(() => {
-        toast.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-        toast.style.opacity = '0';
-        toast.style.transform = 'translate(-50%, -120%) scale(0.8)';
-        setTimeout(() => toast.remove(), 500);
-    }, 900);
-}
-
-/**
- * Süre dolduğunda çalışır
- */
-function handleTimeUp() {
-    playSound(wrongSound);
-
-    document.getElementById('timer').textContent = "0";
-    document.getElementById('timerProgressCircle').setAttribute('stroke-dashoffset', 0);
-
-    const allButtons = answersContainer.querySelectorAll('button');
-    allButtons.forEach(btn => btn.disabled = true);
-
-    const q = currentQuizQuestions[currentQuestionIndex];
-    allButtons.forEach(btn => {
-        if (btn.textContent === q.d) {
-            btn.classList.remove('bg-black/10', 'bg-black/20', 'hover:bg-black/20', 'text-primary');
-            btn.classList.add('bg-green-600', 'text-white');
-        }
-    });
-
-    explainButton.classList.remove('hidden');
-
-    nextQuestionTimeout = setTimeout(() => {
-        currentQuestionIndex++;
-        showQuestion();
-    }, 2000);
 }
 
 
@@ -1393,14 +1302,12 @@ function handleAnswerClick(clickedButton, isCorrect) {
         playSound(correctSound);
 
         currentScore++; // Doğru cevap sayısı
-        currentPoints += q.points || 0; // Temel puan
+        currentPoints = currentScore * 10; // Temel puan
 
-        // ⏱️ SÜREYE DAYALI BONUS PUAN
-        const bonus = getTimeBonusPoints(currentTimeLeft);
-        currentPoints += bonus;
-        showBonusToast(bonus);
+        const progressPercent = Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100);
 
         scoreDisplay.textContent = `Puan: ${currentPoints}`;
+        quizProgress.textContent = `%${progressPercent}`;
 
         if (currentScore === 8) {
             medalWonView.classList.remove('hidden');
@@ -1436,31 +1343,51 @@ function handleAnswerClick(clickedButton, isCorrect) {
  * Test bittiğinde çalışır, sonuçları kaydeder
  */
 async function endQuiz() {
+    // Test Bitti İşlemleri
     clearInterval(timerInterval);
-    if (nextQuestionTimeout) {
-        clearTimeout(nextQuestionTimeout);
+    
+    // --- SKOR HESAPLAMA ---
+    const temelPuan = currentScore * 10;
+    
+    // 🚀 Bir önceki kişinin skorunu Firestore'dan çek (System Config üzerinden)
+    const configDocRef = doc(db, `/artifacts/${appId}/public/data/system/config`);
+    let bonusPuan = 0;
+    let beatedPrevious = false;
+    
+    try {
+        const configSnap = await getDoc(configDocRef);
+        if (configSnap.exists()) {
+            const configData = configSnap.data();
+            const lastBestCorrect = configData.lastQuizCorrectCount || 0;
+            
+            // Kullanıcı bir önceki kişinin doğru sayısını geçtiyse bonus alacak
+            if (currentScore > lastBestCorrect) {
+                bonusPuan = 5;
+                beatedPrevious = true;
+            }
+        }
+        
+        // Bu kişinin skorunu "bir sonraki kişi için" kaydet
+        await setDoc(configDocRef, { 
+            lastQuizCorrectCount: currentScore,
+            lastQuizUserName: currentUserStats.name
+        }, { merge: true });
+        
+    } catch (e) {
+        console.error("Config okunurken/yazılırken hata:", e);
     }
-
-    console.log("Test bitti. Skor:", currentScore);
-
-    const userDocPath = `/artifacts/${appId}/public/data/quizUsers_v2/${currentUserStats.name}`;
-    const userDocRef = doc(db, userDocPath);
-
-    const newMedals = currentUserStats.medals + (currentScore >= 8 ? 1 : 0);
-    const newTotalCorrect = currentUserStats.totalCorrect + currentScore;
-    const newTotalPoints = (currentUserStats.totalPoints || 0) + currentPoints; // Toplam puanı güncelle
-
-    // --- SEEN QUESTIONS TRACKING ---
+    
+    currentPoints = temelPuan + bonusPuan;
+    
+    // --- VERİTABANI GÜNCELLEME ---
+    const userDocRef = doc(db, `/artifacts/${appId}/public/data/quizUsers_v2/${currentUserStats.name}`);
+    const newTotalCorrect = (currentUserStats.totalCorrect || 0) + currentScore;
+    const newTotalPoints = (currentUserStats.totalPoints || 0) + currentPoints;
+    const newMedals = (currentUserStats.medals || 0) + (currentScore >= 8 ? 1 : 0);
+    
     const shownIds = currentQuizQuestions.map(q => q.id).filter(id => id);
-    const existingSeen = currentUserStats.seenQuestions || [];
-    const updatedSeen = [...new Set([...existingSeen, ...shownIds])];
-
-    // Update local state
-    currentUserStats.seenQuestions = updatedSeen;
-    currentUserStats.medals = newMedals;
-    currentUserStats.totalCorrect = newTotalCorrect;
-    currentUserStats.totalPoints = newTotalPoints;
-
+    const updatedSeen = [...new Set([...(currentUserStats.seenQuestions || []), ...shownIds])];
+    
     try {
         await updateDoc(userDocRef, {
             totalCorrect: newTotalCorrect,
@@ -1468,14 +1395,35 @@ async function endQuiz() {
             medals: newMedals,
             seenQuestions: updatedSeen
         });
-    } catch (error) {
-        console.error("Skor güncellenirken hata:", error);
+    } catch (e) { console.error("Skor kaydedilemedi:", e); }
+
+    // --- BİTİŞ EKRANI GÜNCELLEME ---
+    const minutes = Math.floor(quizElapsedSeconds / 60);
+    const seconds = quizElapsedSeconds % 60;
+    const timeDisplay = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const wrongCount = currentQuizQuestions.length - currentScore;
+
+    // HTML'deki istatistik kartlarını doldur
+    document.getElementById('endTimerText').textContent = timeDisplay;
+    document.getElementById('endCorrectText').textContent = currentScore;
+    document.getElementById('endWrongText').textContent = wrongCount;
+
+    // Bonus mesajı alanını göster/gizle
+    const bonusArea = document.getElementById('bonusMessageArea');
+    if (beatedPrevious && bonusArea) {
+        bonusArea.classList.remove('hidden');
+    } else if (bonusArea) {
+        bonusArea.classList.add('hidden');
     }
 
     endMessageText.innerHTML = `
-        <h2 class="text-3xl font-bold">Katılımınız için teşekkürler, ${currentUserStats.name}!</h2>
-        <p class="text-xl text-secondary mt-4">Doğru: ${currentScore} / ${currentQuizQuestions.length}</p>
-        <p class="text-2xl font-bold text-yellow-500 mt-2">Toplam Puan: ${currentPoints}</p>
+        <div class="animate-fadeIn">
+            <p class="text-secondary text-lg mb-4">${currentUserStats.name}</p>
+            <div class="my-6">
+                <span class="text-secondary text-sm uppercase tracking-widest">Kazanılan Puan</span>
+                <div class="text-6xl font-black text-yellow-500 mt-1">${currentPoints}</div>
+            </div>
+        </div>
     `;
     switchView('endView');
     launchConfettiFromCorners();
@@ -1557,7 +1505,7 @@ async function showExplanation() {
  * Gemini API'yi çağıran ana fonksiyon
  */
 async function callGeminiAPI(prompt, retries = 3, delay = 1000) {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
 
     const systemInstruction = {
         parts: [{ text: "Sen yardımsever bir edebiyat uzmanısın. Bir sorunun doğru cevabını, soruyu soran kişiye (TÜBİTAK projesindeki bir öğrenciye) yönelik, kısaca, eğitici ve teşvik edici bir dille, Türkçe olarak açıkla. Çok uzatma, 2-3 cümle yeterli." }]
@@ -1882,7 +1830,7 @@ async function checkWhatsNew() {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.2.2"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.2.3"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);

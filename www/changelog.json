@@ -1,4 +1,12 @@
 {
+    "3.2.3": [
+        "Süre sistemi geri sayım yerine kronometre (sayac) olarak değiştirildi.",
+        "Yarışma esnasındaki sayaç tasarımı sadeleştirildi (çerçeve kaldırıldı).",
+        "Dinamik Bonus Sistemi: Önceki yarışmacıyı geçenlere +5 bonus puan eklendi.",
+        "Quiz üst barı yenilendi: Soru sayısı, Puan ve İlerleme yüzdesi ayrı elementlere ayrıldı.",
+        "Bitiş ekranına detaylı istatistik kartları eklendi (Süre, Doğru, Yanlış).",
+        "Açılış ekranındaki donma sorunu ve önbellek (cache) hataları giderildi."
+    ],
     "3.2.2": [
         "Masaüstü ayarlar menüsündeki tanımsız değişken hatası (ReferenceError) düzeltildi.",
         "Ana Menü butonundaki tekrarlayan listener birikimi (memory leak) giderildi.",
