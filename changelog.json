@@ -1,5 +1,5 @@
 {
-    "3.2.0": [
+    "3.2.1": [
         "Mobil versiyonda uygulama sekmelere veya arka plana alındığında seslerin durması ve geri dönüldüğünde devam etmesi sağlandı.",
         "Süreye dayalı bonus puan sistemi eklendi: 20 saniyeden fazla süre varken doğru cevap +6, 10-20 saniye arası +4, 10 saniyeden az +2 ekstra puan kazandırır.",
         "Doğru cevapta bonus puan ekranda animasyonlu bildirim olarak gösterilir."
