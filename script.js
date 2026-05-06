@@ -399,7 +399,7 @@ window.onload = async () => {
             if (settingsMenu) {
                 settingsMenu.classList.toggle('active');
                 settingsMenu.classList.toggle('hidden');
-                if (isMobile) {
+                if (isMobileOS && isSmallScreen) {
                     settingsMenu.classList.toggle('full-page');
                 }
             }
@@ -606,6 +606,14 @@ window.onload = async () => {
         if (event.key === 'Enter') {
             handleLogin();
         }
+    });
+
+    // Ana Menü butonu (tek seferlik listener — endQuiz içinde olmamalı)
+    document.getElementById('tryAgainButton').addEventListener('click', () => {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+        nameInput.value = '';
+        switchView('loginView');
     });
     nameInput.addEventListener('input', () => {
         nameError.classList.add('hidden');
@@ -1512,20 +1520,7 @@ async function endQuiz() {
     switchView('endView');
     launchConfettiFromCorners();
 
-    const mainMenuButton = document.getElementById('tryAgainButton');
-    mainMenuButton.addEventListener('click', () => {
-        // Müziği durdur ve başa sar
-        backgroundMusic.pause();
-        backgroundMusic.currentTime = 0;
-
-        // --- SES DURUMUNU KORUYORUZ (SIFIRLAMA KALDIRILDI) ---
-        // Kullanıcı sesi açmışsa açık, kapatmışsa kapalı kalmaya devam edecek.
-
-        // Clear the name input field
-        nameInput.value = '';
-
-        switchView('loginView');
-    });
+    // tryAgainButton listener artık window.onload içinde tek seferlik tanımlıdır.
 }
 
 /**
@@ -1914,7 +1909,7 @@ async function checkWhatsNew() {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.2.1"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.2.2"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);

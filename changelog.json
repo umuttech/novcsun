@@ -1,4 +1,9 @@
 {
+    "3.2.2": [
+        "Masaüstü ayarlar menüsündeki tanımsız değişken hatası (ReferenceError) düzeltildi.",
+        "Ana Menü butonundaki tekrarlayan listener birikimi (memory leak) giderildi.",
+        "Genel kararlılık iyileştirmeleri yapıldı."
+    ],
     "3.2.1": [
         "Mobil versiyonda uygulama sekmelere veya arka plana alındığında seslerin durması ve geri dönüldüğünde devam etmesi sağlandı.",
         "Süreye dayalı bonus puan sistemi eklendi: 20 saniyeden fazla süre varken doğru cevap +6, 10-20 saniye arası +4, 10 saniyeden az +2 ekstra puan kazandırır.",
