@@ -132,8 +132,8 @@
             <div id="loginView" class="flex flex-col justify-center items-center md:items-start h-full md:pr-8">
                 <div class="glass-panel p-8 mb-6 w-full max-w-md">
                     <h1 class="text-3xl font-bold mb-4">TÜBİYAT</h1>
-                    <p class="text-sm text-secondary">TÜBİTAK kapsamında geliştirilen, bilimin edebiyatla buluştuğu
-                        noktaya hoş geldin!
+                    <p class="text-sm text-secondary">TÜBİTAK 4006 programı kapsamında geliştirilen, edebiyatın bilimle
+                        buluştuğu noktaya hoş geldin!
                         Liderlik tablosunda yer almak için adını gir ve yarışa katıl.</p>
                 </div>
 
@@ -196,7 +196,7 @@
 
     <div id="endView" class="hidden text-center p-8 bg-mat-dark rounded-lg shadow-2xl max-w-lg mx-auto glass-panel">
         <h2 class="text-3xl font-bold text-primary mb-6">🎉 Tebrikler!</h2>
-        
+
         <!-- İstatistik Kartları -->
         <div class="grid grid-cols-3 gap-4 mb-8">
             <div class="bg-black/20 p-3 rounded-xl border border-gray-700/30">
@@ -372,12 +372,14 @@
         <div
             class="bg-mat-dark w-full max-w-5xl h-[85vh] rounded-2xl shadow-3xl overflow-hidden flex flex-col glass-panel">
             <!-- Header -->
-            <div class="p-6 border-b flex justify-between items-center" style="background: var(--item-hover); border-color: var(--glass-border);">
+            <div class="p-6 border-b flex justify-between items-center"
+                style="background: var(--item-hover); border-color: var(--glass-border);">
                 <h2 class="text-2xl font-bold flex items-center gap-2">
                     <span>📚</span> Soru Bankası Yönetimi
                 </h2>
                 <div class="flex items-center space-x-2">
-                    <button id="qmBulkImportButton" class="hidden text-sm bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg transition-all items-center gap-1">
+                    <button id="qmBulkImportButton"
+                        class="hidden text-sm bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg transition-all items-center gap-1">
                         <span>📤</span> Toplu İçe Aktar
                     </button>
                     <button id="closeQuestionManagerButton" class="text-secondary hover:text-primary transition-colors">
@@ -400,7 +402,8 @@
 
                 <!-- Editor View (Hidden by default) -->
                 <div id="qmEditorContainer" class="hidden flex-1 flex flex-col p-6 overflow-y-auto">
-                    <h3 id="qmEditorTitle" class="text-xl font-bold mb-6 border-b pb-2" style="border-color: var(--glass-border);">
+                    <h3 id="qmEditorTitle" class="text-xl font-bold mb-6 border-b pb-2"
+                        style="border-color: var(--glass-border);">
                         Soru Düzenle</h3>
 
                     <input type="hidden" id="qmEditId">
@@ -437,8 +440,8 @@
                     </div>
 
                     <div class="mt-8 flex justify-end space-x-3">
-                        <button id="qmCancelEditButton"
-                            class="px-6 py-3 rounded-lg transition font-medium border" style="background: var(--item-hover); color: var(--text-primary); border-color: var(--glass-border);">İptal</button>
+                        <button id="qmCancelEditButton" class="px-6 py-3 rounded-lg transition font-medium border"
+                            style="background: var(--item-hover); color: var(--text-primary); border-color: var(--glass-border);">İptal</button>
                         <button id="qmSaveButton"
                             class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-500 transition font-bold shadow-lg">Kaydet</button>
                     </div>
@@ -446,7 +449,8 @@
             </div>
 
             <!-- Bottom Strip -->
-            <div class="flex items-center gap-3 px-4 py-2 border-t shrink-0" style="background: var(--item-hover); border-color: var(--glass-border);">
+            <div class="flex items-center gap-3 px-4 py-2 border-t shrink-0"
+                style="background: var(--item-hover); border-color: var(--glass-border);">
                 <select id="qmCategorySelect"
                     class="flex-1 py-1.5 px-3 bg-black/30 border border-gray-700/50 rounded-md text-primary text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none appearance-none cursor-pointer">
                     <option value="level1">🟢 Easy (Seviye1)</option>
@@ -465,7 +469,8 @@
     <div id="bulkImportModal"
         class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[300] p-4 text-primary">
         <div class="bg-mat-dark w-full max-w-2xl rounded-2xl shadow-3xl overflow-hidden flex flex-col glass-panel">
-            <div class="p-6 border-b flex justify-between items-center" style="background: var(--item-hover); border-color: var(--glass-border);">
+            <div class="p-6 border-b flex justify-between items-center"
+                style="background: var(--item-hover); border-color: var(--glass-border);">
                 <h2 class="text-2xl font-bold flex items-center gap-2">
                     <span>📤</span> Toplu Soru İçe Aktar
                 </h2>
@@ -478,18 +483,21 @@
                 </button>
             </div>
             <div class="p-6 space-y-4">
-                <div class="text-sm p-3 rounded-lg border" style="background: var(--item-hover); border-color: var(--glass-border);">
+                <div class="text-sm p-3 rounded-lg border"
+                    style="background: var(--item-hover); border-color: var(--glass-border);">
                     <p class="font-bold text-primary mb-2">Nasıl Eklenir?</p>
-                    <p class="text-secondary">Sorularınızı aralarında <b>bir boş satır</b> bırakarak aşağıdaki sırayla alt alta yapıştırın:</p>
+                    <p class="text-secondary">Sorularınızı aralarında <b>bir boş satır</b> bırakarak aşağıdaki sırayla
+                        alt alta yapıştırın:</p>
                     <ul class="list-decimal ml-5 mt-1 space-y-1 text-secondary">
                         <li>Soru Metni</li>
                         <li><span class="text-green-400">Doğru Cevap</span></li>
                         <li><span class="text-red-400">Yanlış Cevap 1</span></li>
                         <li><span class="text-red-400">Yanlış Cevap 2</span></li>
-                        <li><span class="text-purple-400">Kategori (kolay, orta, zor)</span> <span class="text-gray-500 text-xs">- İsteğe bağlı</span></li>
+                        <li><span class="text-purple-400">Kategori (kolay, orta, zor)</span> <span
+                                class="text-gray-500 text-xs">- İsteğe bağlı</span></li>
                     </ul>
                 </div>
-                
+
                 <div class="relative">
                     <textarea id="bulkImportTextarea" rows="12"
                         class="w-full p-4 rounded-xl font-sans text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none leading-relaxed"
@@ -509,8 +517,8 @@ orta"></textarea>
                 <div id="bulkImportStatus" class="hidden p-3 rounded-lg text-sm"></div>
 
                 <div class="flex justify-end space-x-3 pt-4">
-                    <button id="cancelBulkImportButton"
-                        class="px-6 py-3 rounded-lg transition font-medium border" style="background: var(--item-hover); color: var(--text-primary); border-color: var(--glass-border);">İptal</button>
+                    <button id="cancelBulkImportButton" class="px-6 py-3 rounded-lg transition font-medium border"
+                        style="background: var(--item-hover); color: var(--text-primary); border-color: var(--glass-border);">İptal</button>
                     <button id="confirmBulkImportButton"
                         class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-500 transition font-bold shadow-lg flex items-center gap-2">
                         <span>🚀</span> Veritabanına Yaz

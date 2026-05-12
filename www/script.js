@@ -957,8 +957,21 @@ function setupLeaderboardListener() {
 function updateLeaderboard() {
     if (!leaderboardContainer) return;
 
-    // KOPYA ALARAK SIRALA (Orijinal listeyi bozma)
-    const sortedUsers = [...(allUsers || [])].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+    // KOPYA ALARAK SIRALA (Puan ve Süre bazlı yeni sıralama)
+    const sortedUsers = [...(allUsers || [])].sort((a, b) => {
+        const scoreA = a.totalPoints || 0;
+        const scoreB = b.totalPoints || 0;
+
+        if (scoreB !== scoreA) {
+            return scoreB - scoreA; // Birincil kriter: Puan (Azalan)
+        }
+
+        // İkincil kriter: Süre (Artan - daha kısa süre üstte)
+        // Süresi olmayanları listenin sonuna atmak için büyük bir değer kullanıyoruz
+        const timeA = (a.lastTime !== undefined && a.lastTime !== null) ? a.lastTime : 999999;
+        const timeB = (b.lastTime !== undefined && b.lastTime !== null) ? b.lastTime : 999999;
+        return timeA - timeB;
+    });
 
     leaderboardContainer.innerHTML = "";
 
@@ -1177,9 +1190,9 @@ async function handleLogin() {
                 currentUserStats = {
                     name: name,
                     totalCorrect: 0,
-                    totalPoints: 0, // Puan eklendi
+                    totalPoints: 0,
                     medals: 0,
-                    logins: 1,
+                    logins: 0, // Yeni kullanıcı 0 login ile başlar (bitirince 1 olacak)
                     seenQuestions: []
                 };
                 transaction.set(userDocRef, currentUserStats);
@@ -1187,11 +1200,12 @@ async function handleLogin() {
                 const data = userDoc.data();
                 currentUserStats = {
                     ...data,
-                    totalPoints: data.totalPoints || 0, // Mevcut puanı koru yoksa 0
-                    logins: (data.logins || 0) + 1,
+                    totalPoints: data.totalPoints || 0,
+                    logins: data.logins || 0,
                     seenQuestions: data.seenQuestions || []
                 };
-                transaction.update(userDocRef, { logins: currentUserStats.logins });
+                // Giriş sayısını burada artırmıyoruz, sadece bitişte artacak
+                // transaction.update(userDocRef, { logins: currentUserStats.logins }); 
             }
         });
 
@@ -1381,10 +1395,12 @@ async function endQuiz() {
     
     currentPoints = temelPuan;
     
-    // --- VERİTABANI GÜNCELLEME ---
+    // --- VERİTABANI GÜNCELLEME (Kümülati Değil, Son Deneme Bazlı) ---
     const userDocRef = doc(db, `/artifacts/${appId}/public/data/quizUsers_v2/${currentUserStats.name}`);
-    const newTotalCorrect = (currentUserStats.totalCorrect || 0) + currentScore;
-    const newTotalPoints = (currentUserStats.totalPoints || 0) + currentPoints;
+    
+    // Puan ve Doğru sayısı artık her denemede sıfırdan güncelleniyor (Son deneme)
+    const newTotalCorrect = currentScore;
+    const newTotalPoints = currentPoints;
     const newMedals = (currentUserStats.medals || 0) + (currentScore >= 8 ? 1 : 0);
     
     const shownIds = currentQuizQuestions.map(q => q.id).filter(id => id);
@@ -1395,8 +1411,10 @@ async function endQuiz() {
             totalCorrect: newTotalCorrect,
             totalPoints: newTotalPoints,
             medals: newMedals,
+            logins: (currentUserStats.logins || 0) + 1, // Sadece bitince girişi artır
             seenQuestions: updatedSeen,
-            lastTime: quizElapsedSeconds
+            lastTime: quizElapsedSeconds,
+            lastAttemptDate: new Date().toISOString() // İsteğe bağlı: Son deneme tarihi
         });
     } catch (e) { console.error("Skor kaydedilemedi:", e); }
 

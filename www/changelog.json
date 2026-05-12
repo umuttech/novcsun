@@ -1,4 +1,9 @@
 {
+    "3.2.7": [
+        "Sıralama sistemi güncellendi: Artık en son denemedeki puan ve süre baz alınıyor.",
+        "Eşit puan durumunda, süresi daha kısa olan kullanıcının üstte yer alması sağlandı.",
+        "Yarım kalan quizlerin istatistikleri etkilememesi sağlandı (Giriş sayısı dahil tüm veriler sadece quiz bitişinde güncellenir)."
+    ],
     "3.2.6": [
         "Ekstra 5 puan bonus sistemi tamamen kaldırıldı.",
         "Liderlik tablosunda ilk 30 kullanıcı sınırı getirildi.",
