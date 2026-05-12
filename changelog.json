@@ -1,4 +1,10 @@
 {
+    "3.2.6": [
+        "Ekstra 5 puan bonus sistemi tamamen kaldırıldı.",
+        "Liderlik tablosunda ilk 30 kullanıcı sınırı getirildi.",
+        "Liderlik tablosuna kullanıcıların yarışmayı bitirme süreleri (saniye) eklendi.",
+        "Genel optimizasyonlar ve kod temizliği yapıldı."
+    ],
     "3.2.5": [
         "Uygulama ikonu güncellendi.",
         "Mobil platformlar için ikon uyumluluğu ve Adaptive Icon desteği artırıldı.",

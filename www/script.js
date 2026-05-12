@@ -969,7 +969,10 @@ function updateLeaderboard() {
         leaderboardContainer.appendChild(emptyMsg);
     }
 
-    sortedUsers.forEach((user, index) => {
+    // Sadece ilk 30 kişiyi göster
+    const topUsers = sortedUsers.slice(0, 30);
+
+    topUsers.forEach((user, index) => {
         const rank = index + 1;
         const userRankTitle = getRankTitle(user.totalPoints || 0);
         const userRow = document.createElement('div');
@@ -982,6 +985,10 @@ function updateLeaderboard() {
                 <span class='text-[10px] text-secondary uppercase tracking-widest truncate'>${userRankTitle}</span>
             </div>
             <div class='flex items-center space-x-2 text-xs font-mono text-primary shrink-0'>
+                <div class="flex flex-col items-center w-8" title="Süre (Saniye)">
+                    <span class="text-[9px] text-secondary">S</span>
+                    <span>${user.lastTime !== undefined ? user.lastTime + 's' : '-'}</span>
+                </div>
                 <div class="flex flex-col items-center w-8">
                     <span class="text-[9px] text-secondary">D</span>
                     <span>${user.totalCorrect || 0}</span>
@@ -1372,35 +1379,7 @@ async function endQuiz() {
     // --- SKOR HESAPLAMA ---
     const temelPuan = currentScore * 10;
     
-    // 🚀 Bir önceki kişinin skorunu Firestore'dan çek (System Config üzerinden)
-    const configDocRef = doc(db, `/artifacts/${appId}/public/data/system/config`);
-    let bonusPuan = 0;
-    let beatedPrevious = false;
-    
-    try {
-        const configSnap = await getDoc(configDocRef);
-        if (configSnap.exists()) {
-            const configData = configSnap.data();
-            const lastBestCorrect = configData.lastQuizCorrectCount || 0;
-            
-            // Kullanıcı bir önceki kişinin doğru sayısını geçtiyse bonus alacak
-            if (currentScore > lastBestCorrect) {
-                bonusPuan = 5;
-                beatedPrevious = true;
-            }
-        }
-        
-        // Bu kişinin skorunu "bir sonraki kişi için" kaydet
-        await setDoc(configDocRef, { 
-            lastQuizCorrectCount: currentScore,
-            lastQuizUserName: currentUserStats.name
-        }, { merge: true });
-        
-    } catch (e) {
-        console.error("Config okunurken/yazılırken hata:", e);
-    }
-    
-    currentPoints = temelPuan + bonusPuan;
+    currentPoints = temelPuan;
     
     // --- VERİTABANI GÜNCELLEME ---
     const userDocRef = doc(db, `/artifacts/${appId}/public/data/quizUsers_v2/${currentUserStats.name}`);
@@ -1416,7 +1395,8 @@ async function endQuiz() {
             totalCorrect: newTotalCorrect,
             totalPoints: newTotalPoints,
             medals: newMedals,
-            seenQuestions: updatedSeen
+            seenQuestions: updatedSeen,
+            lastTime: quizElapsedSeconds
         });
     } catch (e) { console.error("Skor kaydedilemedi:", e); }
 
@@ -1430,14 +1410,6 @@ async function endQuiz() {
     document.getElementById('endTimerText').textContent = timeDisplay;
     document.getElementById('endCorrectText').textContent = currentScore;
     document.getElementById('endWrongText').textContent = wrongCount;
-
-    // Bonus mesajı alanını göster/gizle
-    const bonusArea = document.getElementById('bonusMessageArea');
-    if (beatedPrevious && bonusArea) {
-        bonusArea.classList.remove('hidden');
-    } else if (bonusArea) {
-        bonusArea.classList.add('hidden');
-    }
 
     endMessageText.innerHTML = `
         <div class="animate-fadeIn">
@@ -1840,7 +1812,7 @@ async function checkWhatsNew() {
 // 🔄 UPDATE NOTIFICATION SYSTEM 🔄
 // -------------------------------------------------------------------------
 
-const APP_VERSION = "3.2.5"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
+const APP_VERSION = "3.2.6"; // ✨ BU SÜRÜMÜ GÜNCELLEMEYİ UNUTMAYIN
 
 async function checkAppVersion() {
     console.log("Sürüm kontrolü yapılıyor...", APP_VERSION);
